@@ -1,6 +1,8 @@
 package dev.rohit.userServices.services;
 
 import dev.rohit.userServices.dtos.UserDTO;
+import dev.rohit.userServices.exception.TokenAlreadyExpire;
+import dev.rohit.userServices.exception.UserAlreadyExists;
 import dev.rohit.userServices.models.Session;
 import dev.rohit.userServices.models.SessionStatus;
 import dev.rohit.userServices.models.User;
@@ -47,7 +49,7 @@ public class AuthService {
     public ResponseEntity<UserDTO> login(String email, String password){
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isEmpty()) {
-            return null;
+            throw new UserAlreadyExists("User with email: "+email+ " do not exists");
         }
         User user = userOptional.get();
         if(!bCryptPasswordEncoder.matches(password, user.getPassword())) {
@@ -98,6 +100,10 @@ public class AuthService {
         User user = new User();
         user.setEmail(email);
         user.setPassword(bCryptPasswordEncoder.encode(password));
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isPresent()){
+            throw new UserAlreadyExists("User with email: "+email+ " already exists");
+        }
 
         User savedUser = userRepository.save(user);
 
@@ -127,11 +133,11 @@ public class AuthService {
 //        like token provide is wrong please log in again
 
         String email = (String) claimsJws.getPayload().get("email");
-//       "Find its data type " expiryAt = (Long) claimsJws.getPayload().get("expiryAt");
+        Date expiryAt = (Date) claimsJws.getPayload().get("expiryAt");
 
-//        if(new Date() > expiryAt) {
-//            the token has expired
-//        }
+        if(new Date().getTime() > expiryAt.getTime()) {
+            throw new TokenAlreadyExpire("Token has taken");
+        }
 
         return SessionStatus.ACTIVE;
     }
