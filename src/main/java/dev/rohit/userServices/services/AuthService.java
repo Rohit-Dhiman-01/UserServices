@@ -1,5 +1,8 @@
 package dev.rohit.userServices.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.rohit.userServices.dtos.EmailFormatDTO;
 import dev.rohit.userServices.dtos.UserDTO;
 import dev.rohit.userServices.exception.TokenAlreadyExpire;
 import dev.rohit.userServices.exception.UserAlreadyExists;
@@ -16,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
@@ -35,6 +39,13 @@ public class AuthService {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     private SecretKey secretKey;
 
+    // Create bean and use it.
+    @Autowired
+    private KafkaTemplate<String,String> kafkaTemplate;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Autowired
     public AuthService(
             UserRepository userRepository,
@@ -53,7 +64,7 @@ public class AuthService {
         }
         User user = userOptional.get();
         if(!bCryptPasswordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Password / username does not match");
+            throw new UserAlreadyExists("Password does not match");
         }
 
         Map<String, Object> jwtData = new HashMap<>();
@@ -105,9 +116,24 @@ public class AuthService {
             throw new UserAlreadyExists("User with email: "+email+ " already exists");
         }
 
+        try {
+            kafkaTemplate.send("sendEmail",objectMapper.writeValueAsString(getMessage(user)));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
         User savedUser = userRepository.save(user);
 
         return UserDTO.from(savedUser);
+    }
+
+    private EmailFormatDTO getMessage(User user){
+        EmailFormatDTO message = new EmailFormatDTO();
+        message.setTo(user.getEmail());
+        message.setContent("Sign up successfully");
+        message.setSubject("Sign up success");
+        message.setFrom("rohitdhiman01021999@gmail.com");
+        return message;
     }
 
     public SessionStatus validate(String token, Long userId) {

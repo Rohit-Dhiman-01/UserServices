@@ -57,6 +57,24 @@ public class SecurityConfig {
     }
 
     @Bean
+//    @Order(1)
+    //To Skip the user signUp process
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .authorizeHttpRequests((requests) -> {
+//                            try {
+//                                requests
+//                                        .anyRequest().permitAll()
+//                                        .and().cors().disable()
+//                                        .csrf().disable();
+//                            } catch (Exception e) {
+//                                throw new RuntimeException(e);
+//                            }
+//                        }
+//                );
+//
+//        return http.build();
+//    }
     @Order(1)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
             throws Exception {
@@ -97,34 +115,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-//    @Bean
-//    public UserDetailsService userDetailsService() {
-//        UserDetails userDetails = User.builder()
-//                .username("user")
-//                .password(bCryptPasswordEncoder.encode("password"))
-//                .roles("USER")
-//                .build();
-//
-//        return new InMemoryUserDetailsManager(userDetails);
-//    }
-
-//    @Bean
-//    public RegisteredClientRepository registeredClientRepository() {
-//        RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
-//                .clientId("oidc-client")
-//                .clientSecret(bCryptPasswordEncoder.encode("secret"))
-//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-//                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-//                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-//                .redirectUri("https://oauth.pstmn.io/v1/callback")
-//                .postLogoutRedirectUri("http://127.0.0.1:8080/")
-//                .scope(OidcScopes.OPENID)
-//                .scope(OidcScopes.PROFILE)
-//                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
-//                .build();
-//
-//        return new InMemoryRegisteredClientRepository(oidcClient);
-//    }
 
     @Bean
     public JWKSource<SecurityContext> jwkSource() {

@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(UserAlreadyExists.class)
-    public ResponseEntity<UserDTO> handleException(UserAlreadyExists userAlreadyExists){
-        return new ResponseEntity<>(new UserDTO(),HttpStatus.IM_USED);
+    public ResponseEntity<ExceptionDTO> handleException(UserAlreadyExists userAlreadyExists){
+        return new ResponseEntity<>(new ExceptionDTO(HttpStatus.CONFLICT, userAlreadyExists.getMessage()),HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(TokenAlreadyExpire.class)
-    public ResponseEntity<?> handle(TokenAlreadyExpire tokenAlreadyExpire){
-        return new ResponseEntity<>(new UserDTO(),HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<ExceptionDTO> handle(TokenAlreadyExpire tokenAlreadyExpire){
+        return new ResponseEntity<>(new ExceptionDTO(HttpStatus.UNAUTHORIZED, tokenAlreadyExpire.getMessage()),HttpStatus.UNAUTHORIZED);
     }
 }
