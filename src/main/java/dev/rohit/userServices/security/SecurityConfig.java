@@ -103,8 +103,8 @@ public class SecurityConfig {
             throws Exception {
         http
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/actuator/health").permitAll()
                         .anyRequest().permitAll()
+//                        .requestMatchers("/actuator/health").permitAll()
                 )
                 // Form login handles the redirect to the login page from the
                 // authorization server filter chain

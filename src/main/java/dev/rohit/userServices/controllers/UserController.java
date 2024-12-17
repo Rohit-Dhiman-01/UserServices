@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -15,12 +17,11 @@ public class UserController {
         this.userService = userService;
     }
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserDetails(@PathVariable("id") Long userId) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setEmail("test@test.com");
-        return new ResponseEntity<>(userDTO, HttpStatus.OK);
+    public ResponseEntity<?> getUserDetails(@PathVariable("id") Long userId) {
+          return new ResponseEntity<>(userService.getUserRole(userId) , HttpStatus.OK);
+
     }
-    @PostMapping("/{id}/roles")
+    @PutMapping("/{id}/roles")
     public ResponseEntity<UserDTO> setUserRoles(@PathVariable("id") Long userId, @RequestBody SetUserRolesRequestDTO request) {
 
         UserDTO userDto = userService.setUserRoles(userId, request.getRoleIds());

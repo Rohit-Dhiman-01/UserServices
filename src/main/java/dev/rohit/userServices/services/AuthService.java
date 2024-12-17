@@ -6,9 +6,11 @@ import dev.rohit.userServices.dtos.EmailFormatDTO;
 import dev.rohit.userServices.dtos.UserDTO;
 import dev.rohit.userServices.exception.TokenAlreadyExpire;
 import dev.rohit.userServices.exception.UserAlreadyExists;
+import dev.rohit.userServices.models.Role;
 import dev.rohit.userServices.models.Session;
 import dev.rohit.userServices.models.SessionStatus;
 import dev.rohit.userServices.models.User;
+import dev.rohit.userServices.repositories.RoleRepository;
 import dev.rohit.userServices.repositories.SessionRepository;
 import dev.rohit.userServices.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
@@ -27,10 +29,7 @@ import org.springframework.util.MultiValueMapAdapter;
 
 import javax.crypto.SecretKey;
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class AuthService {
@@ -38,6 +37,7 @@ public class AuthService {
     private SessionRepository sessionRepository;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     private SecretKey secretKey;
+    private RoleRepository roleRepository;
 
     // Create bean and use it.
     @Autowired
@@ -50,9 +50,11 @@ public class AuthService {
     public AuthService(
             UserRepository userRepository,
             SessionRepository sessionRepository,
+            RoleRepository roleRepository,
             BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
+        this.roleRepository=roleRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         secretKey = Jwts.SIG.HS256.key().build();
     }
@@ -112,15 +114,25 @@ public class AuthService {
         user.setEmail(email);
         user.setPassword(bCryptPasswordEncoder.encode(password));
         Optional<User> userOptional = userRepository.findByEmail(email);
+
+        Optional<Role> roleOptional = roleRepository.findByRole("user");
+        if (roleOptional.isEmpty()){
+            throw new UserAlreadyExists("Role did not executrices");
+        }
+        Role role = roleOptional.get();
+        Set<Role> rolesSet = new HashSet<>(Collections.singletonList(role));
+
+        user.setRoles(rolesSet);
+
         if (userOptional.isPresent()){
             throw new UserAlreadyExists("User with email: "+email+ " already exists");
         }
 
-        try {
-            kafkaTemplate.send("sendEmail",objectMapper.writeValueAsString(getMessage(user)));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            kafkaTemplate.send("sendEmail",objectMapper.writeValueAsString(getMessage(user)));
+//        } catch (JsonProcessingException e) {
+//            throw new RuntimeException(e);
+//        }
 
         User savedUser = userRepository.save(user);
 
