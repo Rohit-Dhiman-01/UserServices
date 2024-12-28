@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/users/admin")
 public class UserController {
     private UserService userService;
     public UserController(UserService userService) {

@@ -1,6 +1,5 @@
 package dev.rohit.userServices.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.rohit.userServices.dtos.EmailFormatDTO;
 import dev.rohit.userServices.dtos.UserDTO;
@@ -74,6 +73,14 @@ public class AuthService {
         jwtData.put("createdAt", new Date());
         jwtData.put("expiryAt", new Date(LocalDate.now().plusDays(3).toEpochDay()));
 
+        Set<Role> roleSet= user.getRoles();
+        Set<String> role = new HashSet<>();
+        for(Role r : roleSet){
+            String str = r.getRole();
+            role.add(str);
+        }
+        jwtData.put("role", role);
+
         String token = Jwts
                 .builder()
                 .claims(jwtData)
@@ -90,7 +97,7 @@ public class AuthService {
         UserDTO userDTO = UserDTO.from(user);
 
         MultiValueMap<String, String> headers = new MultiValueMapAdapter<>(new HashMap<>());
-        headers.add(HttpHeaders.SET_COOKIE, "auth-token:" + token);
+        headers.add(HttpHeaders.SET_COOKIE, "auth-token: " + token);
         return new ResponseEntity<UserDTO>(userDTO, headers, HttpStatus.OK);
     }
 

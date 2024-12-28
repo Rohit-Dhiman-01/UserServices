@@ -99,21 +99,33 @@ public class SecurityConfig {
 
     @Bean
     @Order(2)
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
-            throws Exception {
-        http
-                .authorizeHttpRequests((authorize) -> authorize
-                        .anyRequest().permitAll()
-//                        .requestMatchers("/actuator/health").permitAll()
-                )
-                // Form login handles the redirect to the login page from the
-                // authorization server filter chain
-                .formLogin(Customizer.withDefaults())
-                .csrf().disable()
-                .cors().disable();
-
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.disable())
+                .authorizeHttpRequests((authorize)-> authorize
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/users/auth/**").permitAll()
+                        .requestMatchers("/users/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated())
+        ;
         return http.build();
     }
+//            throws Exception {
+//        http
+//                .authorizeHttpRequests((authorize) -> authorize
+//                        .requestMatchers("/actuator/health").permitAll()
+//                        .requestMatchers("/users/auth/**").permitAll()
+//                        .requestMatchers("/users/admin/**").hasRole("admin")
+////                        .anyRequest().authenticated()
+//                )
+//                // Form login handles the redirect to the login page from the
+//                // authorization server filter chain
+//                .formLogin(Customizer.withDefaults())
+//                .csrf().disable()
+//                .cors().disable();
+//
+//        return http.build();
+//    }
 
 
     @Bean
